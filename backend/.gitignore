@@ -1,0 +1,23 @@
+# 빌드 결과물
+build/
+.gradle/
+bin/
+*.class
+out/
+
+# 민감 정보 (DB 비밀번호, API 키 포함)
+src/main/resources/application.yml
+src/main/resources/application-*.yml
+.env
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# 로그
+*.log
+logs/
