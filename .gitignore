@@ -14,5 +14,10 @@ Thumbs.db
 *.log
 logs/
 
-# Frontend (별도 GitHub Pages로 배포)
-frontend/
+# Frontend 환경변수 (로컬 전용)
+frontend/.env.local
+frontend/.env*.local
+
+# Frontend 빌드 결과물
+frontend/.next/
+frontend/node_modules/

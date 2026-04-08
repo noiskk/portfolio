@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="970" height="1680" viewBox="0 0 970 1680" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <marker id="aq" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+            <polygon points="0 0, 7 2.5, 0 5" fill="#4A6CF7"/>
+        </marker>
+        <marker id="as" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+            <polygon points="0 0, 7 2.5, 0 5" fill="#22C55E"/>
+        </marker>
+        <marker id="ai" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+            <polygon points="0 0, 7 2.5, 0 5" fill="#F97316"/>
+        </marker>
+    </defs>
+
+    <!-- 배경 -->
+    <rect width="970" height="1680" fill="#ffffff"/>
+
+    <!-- ========== 헤더: 제목 + 범례 ========== -->
+    <text x="80" y="28" fill="#4B5563" font-size="18" font-weight="800" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">MSA 카드 결제 승인 시퀀스 다이어그램</text>
+
+    <!-- 범례 (bank-service 위에 정렬) -->
+    <circle cx="773" cy="24" r="5" fill="#4A6CF7"/>
+    <text x="783" y="28" fill="#555" font-size="13" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">요청</text>
+    <circle cx="823" cy="24" r="5" fill="#22C55E"/>
+    <text x="833" y="28" fill="#555" font-size="13" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">응답</text>
+    <circle cx="878" cy="24" r="5" fill="#F97316"/>
+    <text x="888" y="28" fill="#555" font-size="13" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">내부처리</text>
+
+
+    <!-- ========== MSA 그룹 박스 (fds + payment) ========== -->
+    <rect x="360" y="48" width="400" height="95" rx="14" fill="none" stroke="#A5B4FC" stroke-width="2" stroke-dasharray="6,4"/>
+    <rect x="495" y="40" width="130" height="20" rx="4" fill="#fff"/>
+    <text x="560" y="54" text-anchor="middle" fill="#6366F1" font-size="12" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">card-service (MSA)</text>
+
+    <!-- ========== 액터 박스 ========== -->
+    <rect x="35" y="65" width="90" height="40" rx="10" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="2"/>
+    <text x="80" y="90" text-anchor="middle" fill="#4338CA" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">pos-client</text>
+    <text x="80" y="120" text-anchor="middle" fill="#999" font-size="11" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">:6060</text>
+
+    <rect x="185" y="65" width="150" height="40" rx="10" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="2"/>
+    <text x="260" y="90" text-anchor="middle" fill="#4338CA" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">VAN-service</text>
+    <text x="260" y="120" text-anchor="middle" fill="#999" font-size="11" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">:7070 / TCP :7777</text>
+
+    <rect x="370" y="65" width="140" height="40" rx="10" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="2"/>
+    <text x="440" y="90" text-anchor="middle" fill="#4338CA" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">card-fds-service</text>
+    <text x="440" y="130" text-anchor="middle" fill="#999" font-size="11" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">:9090</text>
+
+    <rect x="555" y="65" width="190" height="40" rx="10" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="2"/>
+    <text x="650" y="90" text-anchor="middle" fill="#4338CA" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">card-payment-service</text>
+    <text x="650" y="130" text-anchor="middle" fill="#999" font-size="11" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">:9091</text>
+
+    <rect x="800" y="65" width="130" height="40" rx="10" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="2"/>
+    <text x="865" y="90" text-anchor="middle" fill="#4338CA" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">bank-service</text>
+    <text x="865" y="120" text-anchor="middle" fill="#999" font-size="11" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">:8080</text>
+
+    <!-- ========== 라이프라인 ========== -->
+    <line x1="80" y1="150" x2="80" y2="1660" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <line x1="260" y1="150" x2="260" y2="1660" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <line x1="440" y1="150" x2="440" y2="1660" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <line x1="650" y1="150" x2="650" y2="1660" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <line x1="865" y1="150" x2="865" y2="1660" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+
+    <!-- ===== 1. POS 내부처리: ISO 8583 전문 생성 ===== -->
+    <path d="M 80 205 L 120 205 L 120 235 L 80 235" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#ai)"/>
+    <text x="130" y="225" fill="#F97316" font-size="12" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">ISO 8583 전문 생성 (MTI 0200)</text>
+
+
+    <!-- ===== 2. POS → VAN: TCP 소켓 전송 ===== -->
+    <text x="90" y="288" fill="#4A6CF7" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">ISO 8583 / TCP Socket (:7777)</text>
+    <line x1="80" y1="298" x2="260" y2="298" stroke="#4A6CF7" stroke-width="2" marker-end="url(#aq)"/>
+    <text x="90" y="316" fill="#888" font-size="11" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">카드번호, 금액, 가맹점ID</text>
+
+
+    <!-- ===== 3. VAN 내부처리: 유효성 검증 ===== -->
+    <path d="M 260 368 L 300 368 L 300 398 L 260 398" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#ai)"/>
+    <text x="310" y="388" fill="#F97316" font-size="12" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">금액 유효성 검증 (0원 이하 반려)</text>
+
+
+    <!-- ===== 4. VAN → FDS: FDS 검증 요청 ===== -->
+    <text x="270" y="453" fill="#4A6CF7" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">POST /api/fds/inspect</text>
+    <line x1="260" y1="463" x2="440" y2="463" stroke="#4A6CF7" stroke-width="2" marker-end="url(#aq)"/>
+    <text x="270" y="481" fill="#888" font-size="11" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">OpenFeign 통신</text>
+
+
+    <!-- ===== 5. FDS 내부처리: Rule 1 ===== -->
+    <path d="M 440 533 L 480 533 L 480 563 L 440 563" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#ai)"/>
+    <text x="490" y="553" fill="#F97316" font-size="12" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">Rule 1: 3초 이내 중복결제 차단</text>
+
+
+    <!-- ===== 6. FDS 내부처리: Rule 2 ===== -->
+    <path d="M 440 598 L 480 598 L 480 628 L 440 628" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#ai)"/>
+    <text x="490" y="618" fill="#F97316" font-size="12" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">Rule 2: 카드 ACTIVE 상태 검증</text>
+
+
+    <!-- ===== 7. FDS → Payment: 결제 처리 요청 ===== -->
+    <text x="450" y="683" fill="#4A6CF7" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">POST /api/card/payments/process</text>
+    <line x1="440" y1="693" x2="650" y2="693" stroke="#4A6CF7" stroke-width="2" marker-end="url(#aq)"/>
+    <text x="450" y="711" fill="#888" font-size="11" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">FDS 검증 통과 → OpenFeign 통신</text>
+
+
+    <!-- ===== 8. Payment 내부처리: 카드 타입 분기 ===== -->
+    <path d="M 650 763 L 690 763 L 690 793 L 650 793" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#ai)"/>
+    <text x="700" y="783" fill="#F97316" font-size="12" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">카드 타입 분기 (DEBIT / CREDIT)</text>
+
+
+    <!-- ===== 구분선: DEBIT 흐름 ===== -->
+    <line x1="30" y1="843" x2="940" y2="843" stroke="#E5E7EB" stroke-width="1"/>
+    <rect x="370" y="830" width="200" height="26" rx="12" fill="#fff" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="470" y="848" text-anchor="middle" fill="#9CA3AF" font-size="12" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">DEBIT (체크카드) 흐름</text>
+
+
+    <!-- ===== 9. Payment 내부처리: 1회 한도 검사 ===== -->
+    <path d="M 650 893 L 690 893 L 690 923 L 650 923" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#ai)"/>
+    <text x="700" y="913" fill="#F97316" font-size="12" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">1회 결제 한도 검사</text>
+
+
+    <!-- ===== 10. Payment → Bank: 출금 요청 ===== -->
+    <text x="665" y="973" fill="#4A6CF7" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">POST /api/bank/accounts/withdraw</text>
+    <line x1="650" y1="983" x2="865" y2="983" stroke="#4A6CF7" stroke-width="2" marker-end="url(#aq)"/>
+    <text x="665" y="1001" fill="#888" font-size="11" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">OpenFeign 통신 (카드번호, 금액)</text>
+
+
+    <!-- ===== 11. Bank 내부처리: 계좌 조회 → 잔액 확인 → 출금 처리 ===== -->
+    <path d="M 865 1048 L 905 1048 L 905 1078 L 865 1078" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#ai)"/>
+    <text x="855" y="1068" fill="#F97316" font-size="12" font-weight="600" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">계좌 조회 → 잔액 확인 → 출금 처리</text>
+
+
+    <!-- ===== 12. Bank → Payment: 출금 결과 응답 ===== -->
+    <text x="665" y="1123" fill="#22C55E" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">출금 결과 응답</text>
+    <line x1="865" y1="1133" x2="650" y2="1133" stroke="#22C55E" stroke-width="2" marker-end="url(#as)"/>
+    <text x="665" y="1151" fill="#888" font-size="11" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">응답코드 00(성공) / 51(잔액부족)</text>
+
+
+    <!-- ===== 구분선: CREDIT 흐름 ===== -->
+    <line x1="30" y1="1203" x2="940" y2="1203" stroke="#E5E7EB" stroke-width="1"/>
+    <rect x="370" y="1190" width="200" height="26" rx="12" fill="#fff" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="470" y="1208" text-anchor="middle" fill="#9CA3AF" font-size="12" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">CREDIT (신용카드) 흐름</text>
+
+
+    <!-- ===== 13. Payment 내부처리: 신용 한도 검사 ===== -->
+    <path d="M 650 1253 L 690 1253 L 690 1283 L 650 1283" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#ai)"/>
+    <text x="700" y="1268" fill="#F97316" font-size="12" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">1회 결제 한도 + 신용 잔여 한도 검사</text>
+    <text x="700" y="1285" fill="#F97316" font-size="11" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">(creditLimit - usedAmount)</text>
+
+
+    <!-- ===== 14. Payment 내부처리: 사용액 누적 ===== -->
+    <path d="M 650 1323 L 690 1323 L 690 1353 L 650 1353" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#ai)"/>
+    <text x="700" y="1343" fill="#F97316" font-size="12" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">사용 금액 누적 (usedAmount 갱신)</text>
+
+
+    <!-- ===== 구분선: 응답 흐름 ===== -->
+    <line x1="30" y1="1403" x2="940" y2="1403" stroke="#E5E7EB" stroke-width="1"/>
+    <rect x="400" y="1390" width="140" height="26" rx="12" fill="#fff" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="470" y="1408" text-anchor="middle" fill="#9CA3AF" font-size="12" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">응답 흐름</text>
+
+
+    <!-- ===== 15. Payment 내부처리: 승인 이력 저장 ===== -->
+    <path d="M 650 1453 L 690 1453 L 690 1483 L 650 1483" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#ai)"/>
+    <text x="700" y="1473" fill="#F97316" font-size="12" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">승인 이력(Authorization) 저장</text>
+
+
+    <!-- ===== 16. Payment → FDS: 결제 결과 응답 ===== -->
+    <text x="450" y="1528" fill="#22C55E" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">결제 결과 응답</text>
+    <line x1="650" y1="1538" x2="440" y2="1538" stroke="#22C55E" stroke-width="2" marker-end="url(#as)"/>
+
+
+    <!-- ===== 17. FDS → VAN: 결과 전달 ===== -->
+    <text x="270" y="1568" fill="#22C55E" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">FDS + 결제 결과 전달</text>
+    <line x1="440" y1="1578" x2="260" y2="1578" stroke="#22C55E" stroke-width="2" marker-end="url(#as)"/>
+
+
+    <!-- ===== 18. VAN → POS: 최종 응답 (ISO 8583) ===== -->
+    <text x="90" y="1608" fill="#22C55E" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">ISO 8583 응답 (MTI 0210)</text>
+    <line x1="260" y1="1618" x2="80" y2="1618" stroke="#22C55E" stroke-width="2" marker-end="url(#as)"/>
+    <text x="90" y="1636" fill="#888" font-size="11" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">응답코드, 승인 결과</text>
+
+</svg>
