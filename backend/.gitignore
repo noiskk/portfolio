@@ -5,8 +5,7 @@ bin/
 *.class
 out/
 
-# 민감 정보 (DB 비밀번호, API 키 포함)
-src/main/resources/application.yml
+# 민감 정보
 src/main/resources/application-*.yml
 .env
 
