@@ -13,3 +13,6 @@ Thumbs.db
 # 로그
 *.log
 logs/
+
+# Frontend (별도 GitHub Pages로 배포)
+frontend/

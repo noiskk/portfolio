@@ -16,98 +16,6 @@
 
 ---
 
-## 2️⃣ Docker 컨테이너 실행 순서
-```bash
-# 1. MySQL Cluster 시작 (Node 1, 2, 3)
-docker-compose up -d mysql-node1 mysql-node2 mysql-node3
-
-# 2. MySQL Cluster 초기 세팅 (아래 "MySQL Cluster 초기 세팅" 섹션 참고)
-
-# 3. MySQL Router 시작
-echo y | docker exec -i mysql-node1 mysqlsh --no-wizard -e "shell.connect('clusteradmin:admin1234@mysql-node1:3306');dba.rebootClusterFromCompleteOutage('cardCluster');print(dba.getCluster('cardCluster').status());"
-docker-compose up -d mysql-router
-
-# 4. Redis 시작
-docker-compose up -d redis-session
-
-# 5. WAS 시작 (Tomcat)
-docker-compose up -d was-8080 was-8090
-
-# 6. Nginx 시작 (Worker → Master 순서)
-docker-compose up -d worker-nginx-1 worker-nginx-2
-docker-compose up -d master-nginx
-
-# 전체 상태 확인
-docker-compose ps
-```
-
-### 3️⃣ 접속 확인
-```bash
-# 브라우저에서 접속
-http://localhost
-
-# 또는 curl로 확인
-curl http://localhost
-```
-
----
-
-## 📋 MySQL Cluster 초기 세팅
-
-> ⚠️ **중요**: MySQL Cluster는 최초 1회 수동 설정이 필요합니다
-
-### 세팅 순서
-
-#### 1단계: MySQL 노드 초기화
-```bash
-docker-compose up -d mysql-node1 mysql-node2 mysql-node2
-docker-compose up -d mysql-router
-```
-
-#### 2단계: Replication 설정
-```bash
-## 재시작이 되지 않는 다면 수동 시작 필요
-mysqlsh --no-wizard -e "dba.configureInstance('clusteradmin:admin1234@127.0.0.1:3310', {restart: true})"
-mysqlsh --no-wizard -e "dba.configureInstance('clusteradmin:admin1234@127.0.0.1:3320', {restart: true})"
-mysqlsh --no-wizard -e "dba.configureInstance('clusteradmin:admin1234@127.0.0.1:3330', {restart: true})"
-```
-
-#### 3단계: 데이터 복원
-```bash
-# 1. 클러스터 'cardCluster' 생성
-docker exec -it mysql-node1 mysqlsh --no-wizard -e "shell.connect('clusteradmin:admin1234@mysql-node1:3306'); dba.createCluster('cardCluster');"
-
-# 2. 데이터베이스 생성 및 SQL 복사
-docker exec mysql-node1 mysql -u root -proot1234 -e "CREATE DATABASE IF NOT EXISTS card_db;"
-docker cp ./card_db_backup.sql mysql-node1:/backup.sql
-
-# 3. Node 1에만 우선 적재
-docker exec mysql-node1 bash -c "mysql -u root -proot1234 card_db < /backup.sql"
-
-```
-
-#### 4단계: 클러스터 생성 + 노드 추가
-```bash
-mysqlsh --no-wizard -e "
-shell.connect('clusteradmin:admin1234@127.0.0.1:3310');
-var cluster = dba.createCluster('cardCluster');
-cluster.addInstance('clusteradmin:admin1234@127.0.0.1:3320', {recoveryMethod: 'incremental'});
-cluster.addInstance('clusteradmin:admin1234@127.0.0.1:3330', {recoveryMethod: 'incremental'});
-print(cluster.status());
-"
-```
-3대 모두 `ONLINE`, status `"OK"` 나오면 성공.
-
-
-#### 5단계: 검증
-```bash
-docker exec mysql-node1 mysql -u root -proot1234 -h mysql-router -P 6446 -e "SELECT @@hostname;"
-docker exec mysql-node1 mysql -u root -proot1234 -h mysql-router -P 6447 -e "SELECT @@hostname;"
-docker exec mysql-node1 mysql -u root -proot1234 -e "SELECT COUNT(*) FROM card_db.CARD_TRANSACTION;"
-```
-
----
-
 ## 🏗️ 시스템 아키텍처
 
 ### 전체 구조 다이어그램
@@ -115,26 +23,26 @@ docker exec mysql-node1 mysql -u root -proot1234 -e "SELECT COUNT(*) FROM card_d
 ```mermaid
 flowchart TB
     Client[클라이언트]
-    
+
     subgraph Presentation["Presentation Layer (프레젠테이션 계층)"]
         MasterNginx[Master Nginx<br/>포트 80]
         WorkerNginx1[Worker Nginx 1<br/>포트 80]
         WorkerNginx2[Worker Nginx 2<br/>포트 80]
     end
-    
+
     subgraph Application["Application Layer (애플리케이션 계층)"]
         WAS1[WAS Tomcat<br/>포트 8080]
         WAS2[WAS Tomcat<br/>포트 8090]
         Redis[Redis 세션 저장소<br/>포트 6379]
     end
-    
+
     subgraph Data["Data Layer (데이터 계층)"]
         Router[MySQL Router<br/>6446: Write<br/>6447: Read]
         Source[MySQL Node 1<br/>Source 포트 3310]
         Replica1[MySQL Node 2<br/>Replica 포트 3320]
         Replica2[MySQL Node 3<br/>Replica 포트 3330]
     end
-    
+
     Client --> MasterNginx
     MasterNginx --> WorkerNginx1
     MasterNginx --> WorkerNginx2
@@ -188,15 +96,15 @@ flowchart TB
 ```mermaid
 flowchart TB
     Client[클라이언트<br/>브라우저]
-    
+
     MasterNginx[Master Nginx<br/>포트 80<br/>컨테이너: master-nginx]
-    
+
     WorkerNginx1[Worker Nginx 1<br/>포트 80 내부<br/>컨테이너: worker-nginx-1]
     WorkerNginx2[Worker Nginx 2<br/>포트 80 내부<br/>컨테이너: worker-nginx-2]
-    
+
     WAS1[WAS Tomcat<br/>포트 8080<br/>컨테이너: was-8080]
     WAS2[WAS Tomcat<br/>포트 8090<br/>컨테이너: was-8090]
-    
+
     Client -->|HTTP 요청| MasterNginx
     MasterNginx -->|부하분산| WorkerNginx1
     MasterNginx -->|부하분산| WorkerNginx2
@@ -242,7 +150,7 @@ http {
 
         location / {
             proxy_pass http://web-cluster;
-            
+
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -280,7 +188,7 @@ http {
         location / {
             # 모든 요청을 was-cluster로 전달
             proxy_pass http://was-cluster;
-            
+
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -307,14 +215,14 @@ http {
 ```mermaid
 flowchart TB
     WorkerNginx[Worker Nginx<br/>부하분산기]
-    
+
     WAS1[WAS Tomcat 1<br/>포트 8080<br/>컨테이너: was-8080]
     WAS2[WAS Tomcat 2<br/>포트 8090<br/>컨테이너: was-8090]
-    
+
     Redis[Redis 세션 저장소<br/>포트 6379<br/>컨테이너: redis-session]
-    
+
     Router[MySQL Router<br/>6446: Write<br/>6447: Read<br/>컨테이너: mysql-router]
-    
+
     WorkerNginx --> WAS1
     WorkerNginx --> WAS2
     WAS1 <-->|세션 로드/저장| Redis
@@ -570,15 +478,15 @@ DataSource ds = ApplicationContextListener.getReplicaDataSource(getServletContex
 ```mermaid
 flowchart TB
     WAS[WAS 인스턴스<br/>8080, 8090]
-    
+
     Router[MySQL Router<br/>컨테이너: mysql-router<br/>포트 6446: Write<br/>포트 6447: Read]
-    
+
     Source[MySQL Node 1<br/>Source 쓰기 전용<br/>컨테이너: mysql-node1<br/>포트 3310]
-    
+
     Replica1[MySQL Node 2<br/>Replica 읽기 전용<br/>컨테이너: mysql-node2<br/>포트 3320]
-    
+
     Replica2[MySQL Node 3<br/>Replica 읽기 전용<br/>컨테이너: mysql-node3<br/>포트 3330]
-    
+
     WAS -->|쓰기 요청| Router
     WAS -->|읽기 요청| Router
     Router -->|포트 6446<br/>Write| Source
@@ -687,18 +595,6 @@ START SLAVE;
 ```
 
 </details>
-
----
-
-## 📚 추가 문서
-
-더 자세한 내용은 `docs/` 디렉토리의 문서를 참고하세요:
-
-- [📖 Architecture Overview](./docs/architecture-overview.md) - 전체 시스템 아키텍처
-- [🌐 Presentation Layer](./docs/presentation-layer.md) - Nginx 부하분산 상세
-- [⚙️ Application Layer](./docs/application-layer.md) - WAS 및 필터 체인 상세
-- [💾 Data Layer](./docs/data-layer.md) - MySQL Cluster 상세
-- [🔐 Redis Session Store](./docs/redis-session-store.md) - 세션 공유 메커니즘 상세
 
 ---
 

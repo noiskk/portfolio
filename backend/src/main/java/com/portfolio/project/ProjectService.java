@@ -32,7 +32,28 @@ public class ProjectService {
 
         try {
             ClassPathResource resource = new ClassPathResource("readmes/" + project.getReadmeSlug() + ".md");
-            return Optional.of(resource.getContentAsString(StandardCharsets.UTF_8));
+            String content = resource.getContentAsString(StandardCharsets.UTF_8);
+
+            // githubUrl이 있으면 상대 경로 이미지를 GitHub Raw URL로 변환
+            // 예: https://github.com/user/repo → https://raw.githubusercontent.com/user/repo/main/
+            if (project.getGithubUrl() != null) {
+                String rawBase = project.getGithubUrl()
+                        .replaceFirst("https://github\\.com/", "https://raw.githubusercontent.com/")
+                        + "/main/";
+
+                // Markdown 이미지: ![alt](relative/path)
+                content = content.replaceAll(
+                        "!\\[([^]]*)]\\((?!https?://)([^)]+)\\)",
+                        "![$1](" + rawBase + "$2)"
+                );
+                // HTML img 태그: src="relative/path"
+                content = content.replaceAll(
+                        "src=\"(?!https?://)([^\"]+)\"",
+                        "src=\"" + rawBase + "$1\""
+                );
+            }
+
+            return Optional.of(content);
         } catch (IOException e) {
             return Optional.empty();
         }

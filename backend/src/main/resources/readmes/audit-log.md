@@ -22,42 +22,9 @@
 
 <br>
 
-## Getting Started
+## 사용 예시
 
-### 1. 설정
-1. 빌드 후 라이브러리를 pom.xml에 추가합니다.
-```xml
-<dependency>
-    <groupId>com.service.woori</groupId>
-    <artifactId>audit-log</artifactId>
-    <version>1.0.1</version>
-</dependency>
-```
-
-2. `src/main/resources/audit.properties` 파일에 해시 생성에 사용할 비밀키를 설정합니다.
-```properties
-audit.secret.key=top-secret
-```
-
-3. Logback 설정 파일(`logback.xml`)에 `IntegrityAuditAppender`를 등록하고 사용할 `Formatter`를 주입합니다.
-```xml
- <configuration>
-    <appender name="AUDIT" class="core.IntegrityAuditAppender">
-    
-    	<!-- 로그 파일 이름, 경로 설정 -->
-        <logFileName>audit.log</logFileName>
-        
-        <!-- 사용자 커스텀 formatter 설정 (비어있으면 default)-->
-        <formatterClass></formatterClass>
-        
-        </appender>
-    <root level="INFO">
-        <appender-ref ref="AUDIT" />
-    </root>
-</configuration>
-```
-
-### 2. 로그 기록
+### 로그 기록
 
 로그를 남기면, `IntegrityAuditAppender`가 자동으로 해시 체인을 생성하여 기록합니다.
 
@@ -65,7 +32,7 @@ audit.secret.key=top-secret
 // MDC 설정
 MDC.put("userId", "admin001");
 MDC.put("clientIp", "192.168.1.100");
-        
+
 // 로그인
 logger.info("관리자 로그인");
 
@@ -89,7 +56,7 @@ logger.info("관리자 로그아웃");
 2026-02-04 15:22:40 | admin001 | 192.168.1.100 | 관리자 로그아웃 | LOJlM23cmX... | fTtpJ/p/K1...
 ```
 
-### 3. 무결성 검증
+### 무결성 검증
 
 `LogVerifier`를 실행하여 저장된 로그 파일의 무결성을 검사합니다.
 
@@ -133,7 +100,7 @@ graph LR
         Key1[Secret Key]
         Calc1((HMAC))
         Hash1[Hash 1]
-        
+
         Seed & Msg1 & Key1 --> Calc1 --> Hash1
     end
 
@@ -206,8 +173,3 @@ jacoco를 통해 생성한 테스트 리포트는 다음과 같습니다.
 <img width="1265" height="227" alt="Image" src="https://github.com/user-attachments/assets/4b237049-6a43-4d23-a88e-aaf97391a8fb" />
 
 <img width="1146" height="225" alt="Image" src="https://github.com/user-attachments/assets/08449401-f4c0-4132-80b9-85b82d4ad67b" />
-
-
-
-
-
