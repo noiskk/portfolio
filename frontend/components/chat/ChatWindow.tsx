@@ -17,10 +17,18 @@ const INITIAL_MESSAGE: Message = {
 
 const MESSAGES_STORAGE_KEY = 'chat_messages';
 
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 function getOrCreateSessionId(): string {
   let sessionId = localStorage.getItem('chat_session_id');
   if (!sessionId) {
-    sessionId = crypto.randomUUID();
+    sessionId = generateUUID();
     localStorage.setItem('chat_session_id', sessionId);
   }
   return sessionId;
