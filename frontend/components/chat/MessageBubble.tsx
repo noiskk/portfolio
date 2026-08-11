@@ -6,6 +6,22 @@ interface Props {
   message: Message;
 }
 
+// 참고 문서 파일명 → 사용자에게 보여줄 표시명
+const SOURCE_LABELS: Record<string, string> = {
+  'profile.md': '프로필',
+  'skills.md': '기술 스택',
+  'projects.md': '프로젝트 개요',
+  'sofit.md': 'SOFIT',
+  'card-payment.md': '카드 결제 시스템',
+  'card-3tier.md': '카드 조회 3티어',
+  'bookcard.md': 'BookCard',
+  'audit-log.md': '감사 로그 라이브러리',
+};
+
+function sourceLabel(filename: string): string {
+  return SOURCE_LABELS[filename] ?? filename.replace(/\.md$/, '');
+}
+
 export default function MessageBubble({ message }: Props) {
   const isUser = message.role === 'user';
 
@@ -50,6 +66,21 @@ export default function MessageBubble({ message }: Props) {
           >
             {message.content}
           </ReactMarkdown>
+        )}
+
+        {/* 답변 근거가 된 참고 문서 표시 (RAG 검색 결과 출처) */}
+        {!isUser && message.sources && message.sources.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-zinc-700/60 flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] text-zinc-500">참고</span>
+            {message.sources.map((source) => (
+              <span
+                key={source}
+                className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-700/60 text-zinc-300"
+              >
+                {sourceLabel(source)}
+              </span>
+            ))}
+          </div>
         )}
       </div>
     </div>

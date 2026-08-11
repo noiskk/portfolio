@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { streamChatMessage } from '@/lib/api';
+import { streamChatMessage, RateLimitError } from '@/lib/api';
 import { Send, X, MessageCircle } from 'lucide-react';
 import MessageBubble from './MessageBubble';
 
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
+  sources?: string[]; // 답변 근거가 된 참고 문서 파일명 목록
 }
 
 const INITIAL_MESSAGE: Message = {
@@ -90,17 +91,22 @@ export default function FloatingChat() {
     setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
     try {
-      for await (const chunk of streamChatMessage(sessionIdRef.current, trimmed)) {
+      for await (const event of streamChatMessage(sessionIdRef.current, trimmed)) {
         setMessages((prev) => {
           const last = prev[prev.length - 1];
-          return [...prev.slice(0, -1), { ...last, content: last.content + chunk }];
+          const updated =
+            event.type === 'sources'
+              ? { ...last, sources: event.data }
+              : { ...last, content: last.content + event.data };
+          return [...prev.slice(0, -1), updated];
         });
       }
-    } catch {
-      setMessages((prev) => [
-        ...prev.slice(0, -1),
-        { role: 'assistant', content: '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' },
-      ]);
+    } catch (err) {
+      const content =
+        err instanceof RateLimitError
+          ? '질문이 잠시 몰렸어요. 1분 후에 다시 시도해 주세요.'
+          : '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.';
+      setMessages((prev) => [...prev.slice(0, -1), { role: 'assistant', content }]);
     } finally {
       setStreaming(false);
     }

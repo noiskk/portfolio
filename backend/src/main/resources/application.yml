@@ -37,3 +37,6 @@ server:
 portfolio:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,https://noiskk.github.io}
+  rag:
+    top-k: 4                    # 프롬프트에 넣을 검색 청크 수
+    similarity-threshold: 0.35  # 이 값 미만 청크는 무관한 것으로 보고 제외

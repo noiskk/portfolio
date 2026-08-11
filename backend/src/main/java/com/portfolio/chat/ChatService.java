@@ -1,6 +1,9 @@
 package com.portfolio.chat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -10,11 +13,13 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -23,9 +28,9 @@ import java.util.stream.Collectors;
  * 질문 1개 처리 흐름:
  *   1. 세션에서 대화 히스토리 로드
  *   2. 검색 쿼리 보정 (후속 질문 대응)
- *   3. Qdrant 유사도 검색 → 관련 청크 Top-4 추출
+ *   3. Qdrant 유사도 검색 → 임계값 이상 청크 Top-K 추출
  *   4. 프롬프트 조립: 시스템 + context + 히스토리 + 질문
- *   5. LLM 호출 → SSE 스트리밍 응답
+ *   5. LLM 호출 → SSE 스트리밍 응답 (출처 이벤트 → 콘텐츠 이벤트 순)
  *   6. 히스토리 저장 (질문 + 응답)
  */
 @Service
@@ -35,6 +40,17 @@ public class ChatService {
     private final ChatClient chatClient;
     private final VectorStore vectorStore;
     private final ChatSessionStore sessionStore;
+    private final ObjectMapper objectMapper;
+
+    // 검색 상위 K개 청크만 프롬프트에 포함
+    @Value("${portfolio.rag.top-k:4}")
+    private int topK;
+
+    // 유사도 임계값: 이 값 미만의 청크는 관련 없다고 보고 제외
+    // 임계값이 없으면 "오늘 날씨는?" 같은 무관한 질문에도 아무 청크나 Top-K로 들어가
+    // LLM이 엉뚱한 근거로 답변하게 됨
+    @Value("${portfolio.rag.similarity-threshold:0.35}")
+    private double similarityThreshold;
 
     // 시스템 프롬프트: LLM의 역할과 답변 방식 정의
     // %s 자리에 Qdrant에서 검색된 관련 문서 청크(context)가 들어감
@@ -55,10 +71,9 @@ public class ChatService {
             %s
             """;
 
-    public Flux<String> chat(String sessionId, String userMessage) {
+    public Flux<ServerSentEvent<String>> chat(String sessionId, String userMessage) {
 
         // 1. 세션별 대화 히스토리 로드
-        //    없으면 빈 리스트 반환 (ChatSessionStore.computeIfAbsent)
         List<Message> history = sessionStore.getMessages(sessionId);
 
         // 2. 검색 쿼리 보정
@@ -66,24 +81,30 @@ public class ChatService {
         //    → 이전 질문을 앞에 붙여서 의미 있는 쿼리로 만듦
         String searchQuery = buildSearchQuery(userMessage, history);
 
-        // 3. Retrieval: 질문을 벡터로 변환 후 Qdrant에서 유사도 상위 4개 청크 검색
-        //    내부 동작: searchQuery → OpenAI Embedding API → 1536차원 벡터
-        //              → Qdrant 코사인 유사도 계산 → Top-4 청크 반환
+        // 3. Retrieval: 질문을 벡터로 변환 후 Qdrant에서 유사도 검색
+        //    임계값(similarityThreshold) 미달 청크는 제외 → 관련 문서가 없으면 빈 리스트
         List<Document> relatedDocs = vectorStore.similaritySearch(
                 SearchRequest.builder()
                         .query(searchQuery)
-                        .topK(4)
+                        .topK(topK)
+                        .similarityThreshold(similarityThreshold)
                         .build()
         );
 
         // 4. 검색된 청크들을 하나의 문자열(context)로 합치기
-        //    이 context가 LLM이 답변 생성 시 참조하는 실제 정보
         String context = relatedDocs.stream()
                 .map(Document::getText)
                 .collect(Collectors.joining("\n---\n"));
 
+        // 출처 수집: 청크 메타데이터의 source(파일명)를 중복 제거해 유사도 순서대로
+        // 프론트가 답변 하단에 "참고 문서"로 표시 → 답변 근거 추적 가능
+        List<String> sources = relatedDocs.stream()
+                .map(doc -> (String) doc.getMetadata().get("source"))
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
         // 5. 프롬프트 조립: [시스템+context] + [히스토리] + [현재 질문]
-        //    히스토리를 함께 전송하므로 LLM이 대화 맥락을 유지할 수 있음
         List<Message> messages = new ArrayList<>();
         messages.add(new SystemMessage(SYSTEM_PROMPT.formatted(context)));
         messages.addAll(history);
@@ -92,16 +113,31 @@ public class ChatService {
         // 히스토리에 현재 질문 저장 (응답은 doOnComplete에서 저장)
         sessionStore.addMessage(sessionId, new UserMessage(userMessage));
 
-        // 6. Generation: LLM 호출 + SSE 스트리밍
-        //    doOnNext: 토큰이 스트리밍될 때마다 fullResponse에 누적
-        //    doOnComplete: 응답 완료 후 전체 텍스트를 히스토리에 저장
+        // 6. Generation: 출처 이벤트를 먼저 보내고, LLM 스트리밍을 이어붙임
+        //    - event: sources → 참고 문서 파일명 JSON 배열 (검색 결과 없으면 생략)
+        //    - event 없음(message) → 답변 텍스트 청크
+        Flux<ServerSentEvent<String>> sourceEvent = sources.isEmpty()
+                ? Flux.empty()
+                : Flux.just(ServerSentEvent.<String>builder(toJson(sources)).event("sources").build());
+
         StringBuilder fullResponse = new StringBuilder();
 
-        return chatClient.prompt(new Prompt(messages))
+        Flux<ServerSentEvent<String>> contentStream = chatClient.prompt(new Prompt(messages))
                 .stream()
                 .content()
                 .doOnNext(fullResponse::append)
-                .doOnComplete(() -> sessionStore.addMessage(sessionId, new AssistantMessage(fullResponse.toString())));
+                .doOnComplete(() -> sessionStore.addMessage(sessionId, new AssistantMessage(fullResponse.toString())))
+                .map(chunk -> ServerSentEvent.builder(chunk).build());
+
+        return Flux.concat(sourceEvent, contentStream);
+    }
+
+    private String toJson(List<String> sources) {
+        try {
+            return objectMapper.writeValueAsString(sources);
+        } catch (JsonProcessingException e) {
+            return "[]";
+        }
     }
 
     /**
