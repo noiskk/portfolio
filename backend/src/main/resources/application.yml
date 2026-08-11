@@ -1,4 +1,9 @@
 spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
   datasource:
     url: jdbc:mysql://localhost:3306/portfolio?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
     username: ${DB_USERNAME:root}
@@ -40,3 +45,6 @@ portfolio:
   rag:
     top-k: 4                    # 프롬프트에 넣을 검색 청크 수
     similarity-threshold: 0.35  # 이 값 미만 청크는 무관한 것으로 보고 제외
+  chat:
+    session-ttl: 1h             # 마지막 대화 이후 세션 히스토리 유지 시간
+    rate-limit-per-minute: 10   # 세션당 분당 채팅 요청 제한 (OpenAI 비용 보호)

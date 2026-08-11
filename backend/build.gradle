@@ -28,6 +28,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'com.mysql:mysql-connector-j'
 
+    // Redis - 채팅 세션 저장소 + 프로젝트 API 캐싱 + Rate Limiting
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     // Spring AI - OpenAI + Qdrant
     implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
     implementation 'org.springframework.ai:spring-ai-qdrant-store-spring-boot-starter'

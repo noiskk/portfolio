@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,12 +19,18 @@ import java.util.List;
 public class DataInitializer implements ApplicationRunner {
 
     private final ProjectRepository projectRepository;
+    private final CacheManager cacheManager;
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
         // TRUNCATE로 데이터 + auto_increment 동시 리셋 → 재시작마다 ID 1부터 시작
         projectRepository.truncate();
+
+        // 재시딩 전 캐시 무효화 - 이전 실행의 프로젝트 데이터가 캐시에 남는 것 방지
+        Cache projectsCache = cacheManager.getCache("projects");
+        if (projectsCache != null) projectsCache.clear();
+
         log.info("Initializing project data...");
 
         projectRepository.saveAll(List.of(

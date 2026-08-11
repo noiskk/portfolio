@@ -1,6 +1,7 @@
 package com.portfolio.project;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +18,13 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
 
+    // 캐시 HIT 시 DB 조회 생략 - 캐시는 DataInitializer 재시딩 시 비우고 TTL 10분이 안전망
+    @Cacheable(value = "projects", key = "'all'")
     public List<Project> findAll() {
         return projectRepository.findAll();
     }
 
+    @Cacheable(value = "projects", key = "#id")
     public Project findById(Long id) {
         return projectRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Project not found: " + id));
