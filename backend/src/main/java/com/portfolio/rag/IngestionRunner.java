@@ -34,7 +34,21 @@ public class IngestionRunner implements ApplicationRunner {
     private static final int EMBEDDING_DIMENSIONS = 1536;
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) {
+        // 임베딩 실패(OpenAI 장애·키 만료·Qdrant 다운)로 앱 전체가 죽지 않도록 격리한다.
+        // 챗봇은 못 쓰더라도 프로젝트 페이지와 API는 정상 동작해야 한다.
+        try {
+            recreateCollection();
+
+            // Step 2로 넘김: 문서 읽기 → 청킹 → 임베딩 → Qdrant 저장
+            log.info("Starting document ingestion...");
+            documentIngester.ingestAll();
+        } catch (Exception e) {
+            log.error("Document ingestion failed - chat will answer without context until this is fixed", e);
+        }
+    }
+
+    private void recreateCollection() throws Exception {
         log.info("Recreating collection '{}'...", COLLECTION_NAME);
 
         // 기존 컬렉션 삭제 (없으면 예외 무시)
@@ -56,9 +70,5 @@ public class IngestionRunner implements ApplicationRunner {
                 .build()
         ).get();
         log.info("Collection '{}' created.", COLLECTION_NAME);
-
-        // Step 2로 넘김: 문서 읽기 → 청킹 → 임베딩 → Qdrant 저장
-        log.info("Starting document ingestion...");
-        documentIngester.ingestAll();
     }
 }
