@@ -80,6 +80,7 @@ export interface Project {
   period: string;
   githubUrl: string | null;
   demoUrl: string | null;
+  readmeSlug: string | null; // 상세 README 파일명 (없으면 README 토글 미표시)
   techStack: string[];
   role: string[];
   highlights: string[];

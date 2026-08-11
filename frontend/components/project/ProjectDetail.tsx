@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { fetchProject, fetchProjectReadme, Project } from '@/lib/api';
+import { FALLBACK_PROJECTS } from '@/lib/fallback-projects';
 import { GitBranch, ExternalLink, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import ReadmeAccordion from '@/components/project/ReadmeAccordion';
@@ -10,7 +11,9 @@ interface Props {
   id: number;
 }
 
-// 정적 export(GitHub Pages) 환경에서는 빌드 타임에 백엔드가 없으므로 클라이언트에서 fetch
+// 정적 export(GitHub Pages) 환경에서는 빌드 타임에 백엔드가 없으므로 클라이언트에서 fetch.
+// 백엔드가 중지된 동안에도 프로젝트는 보여야 하므로 실패 시 스냅샷으로 대체한다.
+// README 원문은 백엔드에서만 오므로 오프라인일 때는 표시하지 않는다.
 export default function ProjectDetail({ id }: Props) {
   const [project, setProject] = useState<Project | null>(null);
   const [readme, setReadme] = useState<string | null>(null);
@@ -23,7 +26,11 @@ export default function ProjectDetail({ id }: Props) {
         setReadme(readmeData);
         setStatus('ready');
       })
-      .catch(() => setStatus('error'));
+      .catch(() => {
+        const snapshot = FALLBACK_PROJECTS.find((p) => p.id === id);
+        setProject(snapshot ?? null);
+        setStatus(snapshot ? 'ready' : 'error');
+      });
   }, [id]);
 
   if (status === 'loading') {
@@ -50,8 +57,10 @@ export default function ProjectDetail({ id }: Props) {
           Projects
         </Link>
         <div className="text-center py-16 border border-dashed border-zinc-800 rounded-2xl">
-          <p className="text-zinc-500 text-sm">프로젝트 정보를 불러올 수 없습니다.</p>
-          <p className="text-zinc-600 text-xs mt-1">백엔드 서버가 오프라인 상태일 수 있습니다.</p>
+          <p className="text-zinc-500 text-sm">존재하지 않는 프로젝트입니다.</p>
+          <Link href="/projects" className="text-blue-400 text-xs mt-2 inline-block hover:underline">
+            전체 프로젝트 보기
+          </Link>
         </div>
       </div>
     );

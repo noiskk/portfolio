@@ -162,26 +162,53 @@ npm run dev
 
 ### 프로젝트 카드 수정
 `DataInitializer.java`에서 초기 데이터 수정 후 재시작 (TRUNCATE 후 재시딩).
-프로젝트 개수가 바뀌면 `frontend/app/projects/[id]/page.tsx`의 `generateStaticParams` ID 목록도 함께 수정.
+프로젝트 개수가 바뀌면 아래 두 곳도 함께 수정:
+- `frontend/app/projects/[id]/page.tsx`의 `generateStaticParams` ID 목록
+- `frontend/lib/fallback-projects.ts` (백엔드 오프라인 시 표시되는 스냅샷)
 
 ---
 
 ## 배포
 
-### 프론트엔드 — GitHub Pages (구성 완료)
+### 현재 상태
+
+| 구성 | 상태 |
+|------|------|
+| 프론트엔드 | GitHub Pages 자동 배포 (구성 완료) |
+| 백엔드 | **중지** — AWS EC2에 배포했으나 상시 운영 비용 문제로 내려둔 상태 |
+
+백엔드가 꺼져 있어도 사이트는 정상 동작한다. 프로젝트 목록·상세는 정적 스냅샷으로 표시되고, 챗봇만 안내 메시지로 degrade된다.
+
+### 프론트엔드 — GitHub Pages
 
 `main` 브랜치의 `frontend/**` 변경 시 `.github/workflows/deploy-pages.yml`이 정적 빌드 후 Pages에 배포한다.
 
-저장소 설정 필요:
+저장소 설정:
 1. Settings → Pages → Source를 **GitHub Actions**로
-2. Settings → Variables → `NEXT_PUBLIC_API_URL`에 백엔드 공개 HTTPS 주소 (백엔드 배포 후)
-   - 미설정 시 사이트는 뜨지만 챗봇/프로젝트 데이터는 오프라인 안내 표시
+2. Settings → Variables → `NEXT_PUBLIC_API_URL`에 백엔드 HTTPS 주소 (백엔드를 다시 띄웠을 때)
+   - 미설정 시 프로젝트는 스냅샷으로 표시되고 챗봇은 중지 안내를 띄운다
 
-### 백엔드 — 예정
+### 백엔드 — AWS EC2 (중지됨)
 
-GitHub Pages는 HTTPS이므로 백엔드도 **HTTPS 엔드포인트**가 필요하다 (mixed content 차단).
-계획: EC2(또는 NCP) + 도메인 + Let's Encrypt(Caddy/nginx) → `application-prod.yml` 프로필로 기동.
-접속 정보는 전부 환경변수 주입 (`.env.example` 참고).
+단일 EC2 인스턴스에 nginx를 리버스 프록시로 두고 프론트(:3000)와 백엔드(:8080)를 함께 올렸었다. 설정은 `backend/nginx/nginx.conf`에 남아 있다.
+
+```
+[EC2] nginx :80
+        ├── /api/  → Spring Boot :8080
+        └── /      → Next.js :3000
+```
+
+내린 이유는 비용이다. 이 스택은 Spring Boot(JVM) + MySQL + Redis + Qdrant를 함께 띄워야 해서 최소 2GB 인스턴스가 필요하고, 프리티어 1GB로는 메모리가 부족하다. 개인 포트폴리오를 상시 운영하기에는 부담이라 필요할 때만 올리는 쪽으로 정리했다.
+
+### 다시 띄울 때
+
+프론트가 GitHub Pages(HTTPS)로 옮겨갔기 때문에 **위 구성을 그대로 되살릴 수는 없다.** HTTPS 페이지에서 HTTP 백엔드를 호출하면 브라우저가 mixed content로 차단한다. 백엔드에 도메인과 TLS가 필요하다.
+
+1. 인스턴스에 `docker-compose up -d` (Qdrant + Redis) + MySQL
+2. 도메인 연결 후 Caddy 등으로 TLS 종료 (Let's Encrypt 자동 발급)
+3. `--spring.profiles.active=prod`로 기동, 접속 정보는 환경변수 주입 (`.env.example` 참고)
+4. `CORS_ALLOWED_ORIGINS`에 Pages 주소 추가
+5. 저장소 Variables에 `NEXT_PUBLIC_API_URL` 설정 후 워크플로우 재실행
 
 ---
 

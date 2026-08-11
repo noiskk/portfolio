@@ -105,7 +105,11 @@ export default function FloatingChat() {
       const content =
         err instanceof RateLimitError
           ? '질문이 잠시 몰렸어요. 1분 후에 다시 시도해 주세요.'
-          : '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.';
+          : '죄송합니다. 챗봇 서버가 현재 중지되어 있어 답변을 드릴 수 없습니다.\n\n' +
+            'RAG 챗봇은 벡터 검색과 LLM 호출이 필요해 백엔드 서버가 필요한데, ' +
+            '개인 프로젝트라 상시 운영 비용 문제로 내려둔 상태입니다. ' +
+            '아래 프로젝트 목록은 정상적으로 보실 수 있고, ' +
+            '[GitHub 저장소](https://github.com/noiskk/portfolio)에서 전체 코드와 로컬 실행 방법을 확인하실 수 있습니다.';
       setMessages((prev) => [...prev.slice(0, -1), { role: 'assistant', content }]);
     } finally {
       setStreaming(false);

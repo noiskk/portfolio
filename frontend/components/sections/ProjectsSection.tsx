@@ -2,23 +2,22 @@
 
 import { useEffect, useState } from 'react';
 import { fetchProjects, Project } from '@/lib/api';
+import { FALLBACK_PROJECTS } from '@/lib/fallback-projects';
 import ProjectCard from '@/components/project/ProjectCard';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
-// 정적 export(GitHub Pages) 환경에서는 빌드 타임에 백엔드가 없으므로
-// 클라이언트에서 fetch → 항상 백엔드의 최신 데이터를 보여줌
+// 정적 export(GitHub Pages) 환경에서는 빌드 타임에 백엔드가 없으므로 클라이언트에서 fetch.
+// 백엔드가 중지된 동안에도 프로젝트는 보여야 하므로 실패 시 스냅샷으로 대체한다.
 export default function ProjectsSection() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'ready'>('loading');
 
   useEffect(() => {
     fetchProjects()
-      .then((data) => {
-        setProjects(data);
-        setStatus('ready');
-      })
-      .catch(() => setStatus('error'));
+      .then(setProjects)
+      .catch(() => setProjects(FALLBACK_PROJECTS))
+      .finally(() => setStatus('ready'));
   }, []);
 
   return (
@@ -46,11 +45,6 @@ export default function ProjectsSection() {
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="h-48 rounded-2xl border border-zinc-800 bg-zinc-900/40 animate-pulse" />
             ))}
-          </div>
-        ) : status === 'error' || projects.length === 0 ? (
-          <div className="text-center py-16 border border-dashed border-zinc-800 rounded-2xl">
-            <p className="text-zinc-500 text-sm">프로젝트 데이터를 불러올 수 없습니다.</p>
-            <p className="text-zinc-600 text-xs mt-1">백엔드 서버가 오프라인 상태일 수 있습니다.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -45,6 +45,16 @@ export default function MessageBubble({ message }: Props) {
               ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
               li: ({ children }) => <li className="leading-relaxed">{children}</li>,
               strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+              a: ({ href, children }) => (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 underline underline-offset-2 hover:text-blue-300"
+                >
+                  {children}
+                </a>
+              ),
               code: ({ children }) => (
                 <code className="bg-zinc-700 text-zinc-200 rounded px-1 py-0.5 text-xs font-mono">{children}</code>
               ),
