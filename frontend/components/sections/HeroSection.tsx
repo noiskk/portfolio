@@ -27,14 +27,15 @@ export default function HeroSection() {
               Backend Developer
             </p>
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
-              안녕하세요,<br />
+              한 번 더 고민하는 개발자,<br />
               <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
-                개발자 포트폴리오
+                김시온
               </span>입니다.
             </h1>
             <p className="text-zinc-400 text-lg leading-relaxed max-w-xl mb-6">
-              새로운 기술을 배우고 적용하는 것을 좋아하며,
-              문제를 해결하는 과정에서 성장하는 개발자입니다.
+              좋은 코드는 좋은 설계에서 시작된다고 믿습니다.
+              유지보수와 확장성을 고려한 백엔드 설계부터
+              AWS 기반 인프라 구축까지, 서비스의 완성도를 높입니다.
             </p>
 
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
@@ -43,7 +44,7 @@ export default function HeroSection() {
                 Seoul, Korea
               </span>
               <a
-                href="https://github.com"
+                href="https://github.com/noiskk"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
@@ -52,7 +53,7 @@ export default function HeroSection() {
                 GitHub
               </a>
               <a
-                href="mailto:hello@example.com"
+                href="mailto:zionzion00@naver.com"
                 className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
               >
                 <Mail size={15} />
@@ -64,7 +65,7 @@ export default function HeroSection() {
 
         {/* 스킬 태그 */}
         <div className="mt-14 flex flex-wrap justify-center md:justify-start gap-2">
-          {['Java', 'Spring Boot', 'Python', 'React', 'Next.js', 'Docker', 'AWS', 'MySQL', 'Redis'].map(
+          {['Java', 'Spring Boot', 'Spring AI', 'MySQL', 'Redis', 'Qdrant', 'Docker', 'AWS', 'Jenkins'].map(
             (skill) => (
               <span
                 key={skill}

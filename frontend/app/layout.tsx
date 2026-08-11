@@ -6,8 +6,8 @@ import './globals.css';
 const geist = Geist({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Portfolio',
-  description: 'AI-powered portfolio',
+  title: '김시온 | Backend Developer',
+  description: 'RAG 챗봇에게 직접 물어보는 백엔드 개발자 김시온의 포트폴리오',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
