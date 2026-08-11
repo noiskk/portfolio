@@ -125,7 +125,7 @@ npm run dev
 
 | 파일 | 역할 |
 |------|------|
-| `IngestionRunner.java` | 앱 시작 시 Qdrant 컬렉션 삭제 → 문서 재임베딩 |
+| `IngestionRunner.java` | 앱 시작 시 Qdrant 컬렉션 삭제 → 문서 재임베딩 (실패해도 앱은 기동) |
 | `DocumentIngester.java` | `documents/*.md` + `readmes/*.md` 청킹 → Qdrant 저장 |
 | `ChatService.java` | 검색 쿼리 보정 → 임계값 유사도 검색 → 출처 이벤트 + LLM 스트리밍 |
 | `ChatSessionStore.java` | 세션별 대화 히스토리 Redis 저장 (TTL 1시간) |
@@ -218,8 +218,21 @@ Spring Boot 단일 서버가 프로젝트 API + 채팅 + RAG를 모두 담당하
 
 ---
 
+## 테스트
+
+```bash
+cd backend
+docker-compose up -d   # Redis 필요 (없으면 관련 테스트는 skip)
+./gradlew test
+```
+
+Phase 1 Redis 동작을 로컬 Redis 대상으로 검증한다 — 세션 저장/복원과 TTL, Rate Limit 경계(10회 허용 / 11번째 차단), 세션별 독립 집계, 같은 밀리초 동시 요청 집계.
+
+---
+
 ## 남은 작업
 
 - [ ] 백엔드 공개 배포 (EC2/NCP + HTTPS) → Pages의 `NEXT_PUBLIC_API_URL` 설정
 - [ ] **Phase 2** Portfolio API / Chat 서버 분리
 - [ ] RAG 고도화: LLM 기반 검색 쿼리 재작성 (현재는 직전 질문 문자열 결합)
+- [ ] Hybrid Search (BM25 키워드 + 벡터) — 고유명사 검색 정확도 개선
