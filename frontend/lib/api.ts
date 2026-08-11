@@ -1,4 +1,5 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
+// 빈 문자열(CI에서 변수 미설정)도 미지정으로 취급 → 로컬 기본값
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // SSE 스트림 이벤트: 백엔드가 출처(sources) 이벤트를 먼저 보내고 답변 텍스트를 이어보냄
 export type ChatStreamEvent =

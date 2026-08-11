@@ -1,0 +1,62 @@
+# 프론트엔드 정적 빌드 → GitHub Pages 배포
+#
+# 사전 설정 (저장소 Settings):
+#   - Pages > Source: GitHub Actions
+#   - Variables > NEXT_PUBLIC_API_URL: 백엔드 공개 배포 후 HTTPS 주소 입력
+#     (미설정 시 챗봇/프로젝트 데이터는 오프라인 안내로 표시됨)
+name: Deploy Frontend to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ['frontend/**', '.github/workflows/deploy-pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build static export
+        run: npm run build
+        env:
+          # 프로젝트 페이지(https://<user>.github.io/portfolio) 기준 경로
+          NEXT_PUBLIC_BASE_PATH: /portfolio
+          # 백엔드 공개 배포 전까지는 미설정 → 사이트는 뜨고 데이터 영역만 오프라인 안내
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
