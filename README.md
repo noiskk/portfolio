@@ -43,7 +43,7 @@ portfolio/
      │
      ├── ChatService
      │    ├── ChatSessionStore     → Redis List (TTL 1시간, 대화마다 갱신)
-     │    ├── VectorStore.search() → Qdrant (Docker :6334, 유사도 임계값 0.35)
+     │    ├── VectorStore.search() → Qdrant (Docker :6334, 유사도 임계값 0.30)
      │    └── ChatClient.prompt()  → OpenAI API
      │
      └── ProjectService            → MySQL (로컬 :3306)
@@ -59,11 +59,32 @@ portfolio/
   (시작마다 기존 컬렉션 삭제 후 재임베딩 → 문서 수정 즉시 반영)
 
 요청 시 (Retrieval + Generation):
-  질문 + 히스토리 → 검색 쿼리 보정 → 유사도 검색 (Top-4, 임계값 0.35)
+  질문 + 히스토리 → 검색 쿼리 보정 → 유사도 검색 (Top-4, 임계값 0.30)
   → event:sources 로 출처(파일명) 먼저 전송
   → 검색 청크 + 대화 히스토리 → LLM 프롬프트 → SSE 스트리밍 응답
   → 프론트가 답변 하단에 "참고 문서" 칩 표시
 ```
+
+### 검색 품질 평가
+
+임계값을 감으로 정하지 않기 위해 관련 질문 22개와 무관 질문 8개로 골든셋을 만들고,
+청킹 4종 × Top-K 5종 × 임계값 9종의 180개 조합을 비교했다.
+
+현재 운영 설정은 **500토큰/overlap 100, Top-K 4, 임계값 0.30**이다.
+
+| 지표 | 0.30 | 0.35 | 의미 |
+|------|------|------|------|
+| Hit | **0.864** | 0.591 | 관련 질문에서 기대 출처가 검색된 비율 |
+| MRR | **0.788** | 0.545 | 기대 출처가 상위 순위에 등장한 정도 |
+| Reject | **1.000** | 1.000 | 무관 질문에서 검색 결과가 0건인 비율 |
+| AvgDoc | 2.73 | 1.68 | 관련 질문당 평균 반환 청크 수 |
+
+무관 질문의 최고 유사도는 0.269였기 때문에 0.30에서도 모두 차단됐고,
+0.35는 차단 효과가 같으면서 관련 문서 검색만 더 많이 누락했다. 이 결과를 근거로 임계값을 0.35에서 0.30으로 조정했다.
+
+다만 파일 단위 Hit가 곧 답변 성공을 뜻하지는 않는다. "학력이 어떻게 되나요?"에서는
+`profile.md`가 검색돼 Hit로 집계됐지만, 실제 학력 정보가 포함된 청크는 0.2978로 임계값을 통과하지 못했다.
+검색 지표와 함께 실제 답변을 검증해야 하며, 다음 개선 과제로 마크다운 헤딩 기반 청킹을 검토하고 있다.
 
 ---
 
@@ -255,11 +276,29 @@ docker-compose up -d   # Redis 필요 (없으면 관련 테스트는 skip)
 
 Phase 1 Redis 동작을 로컬 Redis 대상으로 검증한다 — 세션 저장/복원과 TTL, Rate Limit 경계(10회 허용 / 11번째 차단), 세션별 독립 집계, 같은 밀리초 동시 요청 집계.
 
+검색 품질 평가는 OpenAI 임베딩 API를 호출하므로 일반 테스트에서는 자동으로 건너뛴다.
+평가 시에는 OpenAI API Key와 Qdrant가 필요하다.
+
+```bash
+# 청킹 4종 × Top-K 5종 × 임계값 9종 스윕
+RUN_EVAL=true ./gradlew test --tests '*RetrievalEvalTest*'
+# 결과: backend/build/eval-report.md
+
+# 운영 설정(500/100)에서 질문별 유사도 점수 진단
+RUN_EVAL=true ./gradlew test --tests '*RetrievalDiagnosisTest*'
+```
+
+골든셋은 `backend/src/test/resources/eval/golden-set.json`에서 관리한다.
+평가 질문은 개인 문서 내용에 종속되므로 저장소에는 올리지 않으며, 스키마는 `golden-set.example.json`을 참고해 채운다.
+문서를 추가하거나 청킹 설정을 바꾼 뒤에는 평가를 다시 실행해 검색 품질 회귀를 확인한다.
+
 ---
 
 ## 남은 작업
 
 - [ ] 백엔드 공개 배포 (EC2/NCP + HTTPS) → Pages의 `NEXT_PUBLIC_API_URL` 설정
 - [ ] **Phase 2** Portfolio API / Chat 서버 분리
+- [ ] 마크다운 헤딩 기반 청킹 (코드 펜스 인식, 헤딩 깊이 적응, 폴백 포함)
+- [ ] 골든셋 확장 및 청크 단위·답변 수준 평가 추가
 - [ ] RAG 고도화: LLM 기반 검색 쿼리 재작성 (현재는 직전 질문 문자열 결합)
 - [ ] Hybrid Search (BM25 키워드 + 벡터) — 고유명사 검색 정확도 개선
