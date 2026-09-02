@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @Order(2)
+// 평가·테스트에서 기동 시 재색인(임베딩 비용)을 끄기 위한 스위치. 기본값은 켜짐.
+@ConditionalOnProperty(name = "portfolio.rag.ingest-on-startup", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 public class IngestionRunner implements ApplicationRunner {
 

@@ -1,0 +1,16 @@
+{
+  "_comment": "검색 품질 평가용 골든셋의 스키마 예시. 실제 golden-set.json은 커밋하지 않는다(.gitignore). 이 파일을 golden-set.json으로 복사한 뒤 문서 내용에 맞는 질문으로 채워 사용한다.",
+  "_metrics": {
+    "Hit": "positives에서 expected 중 하나라도 검색 결과에 포함된 비율",
+    "MRR": "expected가 몇 번째로 나왔는지의 역수 평균",
+    "Reject": "negatives에서 검색 결과가 0건이 된 비율",
+    "AvgDoc": "질문당 평균 반환 청크 수"
+  },
+  "positives": [
+    { "question": "<문서에 답이 있는 질문>", "expected": ["<기대 출처 파일명.md>"] },
+    { "question": "<여러 문서에 걸친 질문>", "expected": ["<파일A.md>", "<파일B.md>"] }
+  ],
+  "negatives": [
+    "<문서와 무관해서 검색 결과가 0건이어야 하는 질문>"
+  ]
+}

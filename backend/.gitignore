@@ -20,3 +20,6 @@ src/main/resources/application-*.yml
 # 로그
 *.log
 logs/
+
+# 검색 품질 평가용 골든셋 (로컬 전용)
+backend/src/test/resources/eval/golden-set.json
