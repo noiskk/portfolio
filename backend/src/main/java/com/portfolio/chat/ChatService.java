@@ -49,7 +49,12 @@ public class ChatService {
     // 유사도 임계값: 이 값 미만의 청크는 관련 없다고 보고 제외
     // 임계값이 없으면 "오늘 날씨는?" 같은 무관한 질문에도 아무 청크나 Top-K로 들어가
     // LLM이 엉뚱한 근거로 답변하게 됨
-    @Value("${portfolio.rag.similarity-threshold:0.35}")
+    //
+    // 값 근거 (골든셋 22문항 + 무관 질문 8개 측정):
+    //   무관 질문의 최고 유사도는 0.269 → 0.30이면 전부 차단된다.
+    //   0.35에서는 차단 효과가 같은데 관련 문서만 9개 더 잘려 검색 성공률이 0.86 → 0.59로 떨어졌다.
+    //   측정: RUN_EVAL=true ./gradlew test --tests '*RetrievalEvalTest*'
+    @Value("${portfolio.rag.similarity-threshold:0.30}")
     private double similarityThreshold;
 
     // 시스템 프롬프트: LLM의 역할과 답변 방식 정의

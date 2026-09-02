@@ -44,7 +44,7 @@ portfolio:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,https://noiskk.github.io}
   rag:
     top-k: 4                    # 프롬프트에 넣을 검색 청크 수
-    similarity-threshold: 0.35  # 이 값 미만 청크는 무관한 것으로 보고 제외
+    similarity-threshold: 0.30  # 이 값 미만 청크는 무관한 것으로 보고 제외 (골든셋 22문항 측정 결과: 0.35는 관련 문서 9개를 놓쳤고, 무관 질문 최고 점수는 0.269였다)
   chat:
     session-ttl: 1h             # 마지막 대화 이후 세션 히스토리 유지 시간
     rate-limit-per-minute: 10   # 세션당 분당 채팅 요청 제한 (OpenAI 비용 보호)
