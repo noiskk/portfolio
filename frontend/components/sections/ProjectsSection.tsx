@@ -22,16 +22,9 @@ export default function ProjectsSection() {
 
   return (
     <section className="py-20 px-6">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="flex items-end justify-between mb-10">
-          <div>
-            <p className="text-blue-400 font-medium text-sm tracking-wide uppercase mb-2">
-              Projects
-            </p>
-            <h2 className="text-3xl font-bold text-white">
-              진행한 프로젝트
-            </h2>
-          </div>
+          <h2 className="text-3xl font-bold text-blue-400">Projects</h2>
           <Link
             href="/projects"
             className="hidden sm:inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors"

@@ -9,6 +9,23 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  /* 한글은 단어 단위로 줄바꿈 (단어 중간에서 끊기지 않게), 긴 영문·URL은 넘치지 않게 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 제목은 줄 길이를 균형 있게, 본문은 마지막 줄에 한 단어만 남지 않게 */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+p, li {
+  text-wrap: pretty;
+}
+
+/* 코드는 원래대로 */
+pre, code {
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 /* 채팅창 오픈 애니메이션 */

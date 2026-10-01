@@ -1,4 +1,4 @@
-import { Message } from './FloatingChat';
+import type { Message } from '@/lib/useChat';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 

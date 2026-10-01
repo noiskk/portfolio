@@ -87,6 +87,20 @@ export interface Project {
   troubleshooting: string[];
 }
 
+// 백엔드 생존 확인. 꺼져 있으면 첫 화면을 챗봇 없는 일반 포트폴리오로 전환하는 데 쓴다.
+export async function checkBackend(timeoutMs = 4000): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${BASE_URL}/api/projects`, { signal: controller.signal });
+    return res.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function fetchProjects(): Promise<Project[]> {
   const res = await fetch(`${BASE_URL}/api/projects`);
   if (!res.ok) throw new Error('Failed to fetch projects');

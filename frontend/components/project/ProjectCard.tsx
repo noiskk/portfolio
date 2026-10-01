@@ -6,6 +6,9 @@ interface Props {
   project: Project;
 }
 
+// 카드에는 앞쪽 핵심 기술만 보여주고 나머지는 +N으로 접는다 (전체는 상세 페이지)
+const MAX_TECH = 4;
+
 export default function ProjectCard({ project }: Props) {
   return (
     <div className="group bg-zinc-900/50 border border-zinc-800/80 rounded-2xl p-6 flex flex-col gap-4 hover:border-zinc-700 hover:bg-zinc-900 transition-all duration-300">
@@ -38,12 +41,17 @@ export default function ProjectCard({ project }: Props) {
 
       {project.techStack.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {project.techStack.map((tech) => (
+          {project.techStack.slice(0, MAX_TECH).map((tech) => (
             <span key={tech}
               className="text-xs bg-zinc-800/80 text-zinc-400 px-2.5 py-1 rounded-full border border-zinc-800">
               {tech}
             </span>
           ))}
+          {project.techStack.length > MAX_TECH && (
+            <span className="text-xs text-zinc-500 px-1.5 py-1">
+              +{project.techStack.length - MAX_TECH}
+            </span>
+          )}
         </div>
       )}
 

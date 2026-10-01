@@ -19,12 +19,9 @@ export default function ProjectsPage() {
   }, []);
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12">
+    <div className="max-w-4xl mx-auto px-6 py-12">
       <div className="mb-10">
-        <p className="text-blue-400 font-medium text-sm tracking-wide uppercase mb-2">
-          Projects
-        </p>
-        <h1 className="text-3xl font-bold text-white mb-2">전체 프로젝트</h1>
+        <h1 className="text-3xl font-bold text-blue-400 mb-2">Projects</h1>
         <p className="text-zinc-400 text-sm">진행한 프로젝트 목록입니다.</p>
       </div>
 
