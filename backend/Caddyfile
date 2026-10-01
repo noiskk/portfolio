@@ -1,0 +1,7 @@
+# DOMAIN은 .env에서 주입 (예: myname.duckdns.org). Let's Encrypt 인증서를 자동 발급한다.
+{$DOMAIN} {
+	reverse_proxy backend:8080 {
+		# SSE 스트리밍 응답을 버퍼링하지 않고 바로 전달
+		flush_interval -1
+	}
+}
