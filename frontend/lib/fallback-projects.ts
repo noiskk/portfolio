@@ -134,7 +134,7 @@ export const FALLBACK_PROJECTS: Project[] = [
       ],
       "troubleshooting": [
         "SecurityContext 스레드 전파 — SSE 생성이 ExecutorService의 별도 스레드에서 실행되면서 ThreadLocal 기반 SecurityContext가 전파되지 않아 getCurrentUser() 호출 시 NPE 발생 → 요청 스레드에서 컨텍스트를 캡처해 자식 스레드에 직접 주입하고 finally에서 clearContext()로 스레드풀 오염을 방지해 해결",
-        "북카드 생성 실패 시 DB 불완전 데이터 잔류 — 4단계 AI 체이닝 중 중간 단계 API 오류 시 앞 단계의 결과(summary 등)가 이미 DB에 커밋된 채로 남는 문제 → @Transactional로 전체 생성 과정을 하나의 트랜잭션으로 묶어 어느 단계에서든 실패하면 DB 저장 전체가 롤백되도록 해결",
+        "북카드 생성 중 DB 커넥션이 약 21초 동안 점유됨 — AI 호출 4단계를 포함한 생성 전 과정에 @Transactional이 걸려 호출이 끝날 때까지 커넥션을 붙잡고 있었음 → AI 호출은 트랜잭션 밖에서 실행하고 DB 저장 구간만 TransactionTemplate으로 짧게 묶어 점유 시간을 저장 시간(수십 ms) 수준으로 단축",
         "SSE async dispatch Access Denied 로그 — SSE 응답 완료 후 Tomcat이 내부적으로 ASYNC dispatch를 발생시키는데 Spring Security 6가 필터 체인을 재실행하면서 빈 SecurityContext로 인해 anyRequest().authenticated() 룰에 차단 → SecurityConfig에 dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll() 추가로 해결"
       ],
       "role": [

@@ -190,9 +190,9 @@ export const PROJECT_DETAILS: Record<number, ProjectDetailContent> = {
         solution: '요청 스레드에서 컨텍스트를 캡처해 자식 스레드에 직접 주입하고, finally에서 clearContext()로 스레드풀 오염을 막았습니다.',
       },
       {
-        problem: '북카드 생성이 실패해도 불완전한 데이터가 DB에 남음',
-        cause: '4단계 AI 체이닝 중 중간 단계에서 API 오류가 나면 앞 단계의 결과(summary 등)가 이미 커밋된 상태였습니다.',
-        solution: '@Transactional로 생성 전 과정을 하나의 트랜잭션으로 묶어, 어느 단계에서 실패해도 전체가 롤백되게 했습니다.',
+        problem: '북카드 생성 중 DB 커넥션이 약 21초 동안 점유됨',
+        cause: 'AI 호출 4단계를 포함한 생성 전 과정에 @Transactional이 걸려 있어, 호출이 끝날 때까지 커넥션 풀의 커넥션을 붙잡고 있었습니다.',
+        solution: 'AI 호출은 트랜잭션 밖에서 실행하고, DB 저장 구간만 TransactionTemplate으로 짧게 묶어 점유 시간을 저장 시간(수십 ms) 수준으로 줄였습니다.',
       },
       {
         problem: 'SSE 완료 후 Access Denied 로그가 남음',
