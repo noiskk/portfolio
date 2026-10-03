@@ -1,0 +1,68 @@
+# 백엔드 → EC2 배포 (SSH)
+#
+# 서버의 deploy 전용 키는 authorized_keys에서 command="~/deploy-entry.sh"로 제한돼 있어,
+# 이 키로는 배포 스크립트 외의 어떤 명령도 실행할 수 없다.
+#
+# 사전 설정 (저장소 Settings > Secrets and variables > Actions):
+#   Secret   EC2_SSH_KEY       배포 전용 개인키
+#   Variable EC2_HOST          서버 도메인 (예: noiskk-portfolio.duckdns.org)
+#   Variable EC2_KNOWN_HOSTS   ssh-keyscan -t ed25519 <도메인> 출력 한 줄 (호스트 키 고정)
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', '.github/workflows/deploy-backend.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      HOST: ${{ vars.EC2_HOST }}
+    steps:
+      - name: Check configuration
+        env:
+          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          KNOWN_HOSTS: ${{ vars.EC2_KNOWN_HOSTS }}
+        run: |
+          for name in HOST SSH_KEY KNOWN_HOSTS; do
+            if [ -z "${!name}" ]; then
+              echo "::error::${name} 가 설정되지 않았습니다 (파일 상단 주석 참고)"; exit 1
+            fi
+          done
+
+      - name: Prepare SSH
+        env:
+          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          KNOWN_HOSTS: ${{ vars.EC2_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Deploy
+        # 서버가 command= 제한으로 deploy-entry.sh만 실행한다 (여기서 넘기는 인자는 무시됨)
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+              -o StrictHostKeyChecking=yes \
+              -o ServerAliveInterval=30 \
+              ubuntu@"$HOST" deploy
+
+      - name: Health check
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS -o /dev/null "https://$HOST/api/projects"; then
+              echo "healthy"; exit 0
+            fi
+            echo "waiting for backend... ($i/30)"; sleep 10
+          done
+          echo "::error::배포 후 헬스체크 실패"; exit 1
