@@ -10,6 +10,7 @@ interface Props {
 const SOURCE_LABELS: Record<string, string> = {
   'profile.md': '프로필',
   'skills.md': '기술 스택',
+  'about-me.md': '강점·협업·성장',
   'projects.md': '프로젝트 개요',
   'sofit.md': 'SOFIT',
   'card-payment.md': '카드 결제 시스템',
